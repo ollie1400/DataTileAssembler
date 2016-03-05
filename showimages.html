@@ -1,0 +1,159 @@
+<html>
+<head>
+<style>
+canvas {
+  image-rendering: optimizeSpeed;             /* Older versions of FF          */
+  image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+  image-rendering: -webkit-optimize-contrast; /* Safari                        */
+  image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+  image-rendering: pixelated;                 /* Awesome future-browsers       */
+  -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}
+</style>
+
+<script>
+
+// canvas
+var canvas;
+var context;
+
+var images = [];
+var imageRects = [];
+
+function Rectangle()
+{
+	// top left positions
+	this.x = 0;
+	this.y = 0;
+	this.width = 0;
+	this.height = 0;
+	this.bottomRight = function() { return {x: this.x + this.width, y: this.y + this.height }; }
+}
+
+function Point(x,y)
+{
+	this.x = x == undefined ? 0 : x;
+	this.y = y == undefined ? 0 : y;
+}
+
+// viewport position
+viewPort = new Rectangle();
+viewPort.x = -400;
+viewPort.y = 969.7;
+viewPort.width = (-200 - viewPort.x);
+viewPort.height = (974 - viewPort.y);
+
+
+function onLoad()
+{
+	canvas = document.getElementById("drawing");
+    context = canvas.getContext("2d");
+	
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	
+	// get images
+	var imgs = document.getElementsByClassName("image");
+	
+	// process each one
+	for (i=0; i< imgs.length; i++)
+	{
+		images.push(imgs[i]);
+		
+		var src = imgs[i].getAttribute("src");
+		var srcBits = src.split(",");
+		
+		var imgRect = new Rectangle();
+		imgRect.x = parseFloat(srcBits[0]);//-400;
+		imgRect.y = parseFloat(srcBits[1]);//969.9;
+		imgRect.width = parseFloat(srcBits[2]) - imgRect.x;//((-250) - (-400));
+		imgRect.height = parseFloat(srcBits[3]) - imgRect.y;//(970.9 - 969.9);
+		
+		//imgRect.x = -400;
+		//imgRect.y = 969.9;
+		//imgRect.width = ((-250) - (-400));
+		//imgRect.height = (970.9 - 969.9);
+		imageRects.push(imgRect);
+	}
+    
+	draw();
+};
+
+function draw()
+{
+	// map images
+	for (i=0; i< images.length; i++)
+	{
+		dRect = mapRectangleToViewPort(imageRects[i]);
+		context.drawImage(images[i], dRect.x, dRect.y, dRect.width, dRect.height);
+	}
+	
+	// draw markers
+	var xmin = viewPort.x;
+	var xmax = viewPort.x + viewPort.Width;
+	var numMarkers = 10;
+	var markerSpacing = canvas.width / (numMarkers - 1);
+	if (markerSpacing > 5) markerSpacing = 10;
+	if (markerSpacing > 15) markerSpacing = 20;
+	if (markerSpacing > 25) markerSpacing = 30;
+	if (markerSpacing > 45) markerSpacing = 30;
+	
+	context.font = "25px Arial";
+	var x = viewPort.x;
+	while(x < (viewPort.x + viewPort.width))
+	{
+		x = x + markerSpacing;
+		context.beginPath();
+		context.moveTo(x,0);
+		context.lineTo(x,canvas.height);
+		context.stroke();
+		
+		// add text
+		p = mapPointToRealSpace(new Point(x, 0));
+		context.fillText(p.x.toFixed(1), x, 30);
+	}
+	
+}
+
+// takes a Rectangle object that defines a region in real space, and returns a Rectangle that defines it in canvas space
+function mapRectangleToViewPort(pos)
+{
+	scaledRect = new Rectangle();
+	scaledRect.x = (pos.x - viewPort.x) * canvas.width / viewPort.width;
+	scaledRect.y = (pos.y - viewPort.y) * canvas.height / viewPort.height;
+	scaledRect.width = pos.width * canvas.width / viewPort.width;
+	scaledRect.height = pos.height * canvas.height / viewPort.height;
+	return scaledRect;
+}
+
+// takes a Point object that defines a point in real space (mV, nm) and returns a Point that defines it in canvas space
+function mapPointToViewPort(point)
+{
+	scaledPoint = new Point();
+	scaledPoint.x = (point.x - viewPort.x) * canvas.width / viewPort.width;
+	scaledPoint.y = (point.y - viewPort.y) * canvas.height / viewPort.height;
+	return scaledPoint;
+}
+
+// takes a Point object that defines a point canvas space and returns a Point that defines it in in real space (mV, nm) 
+function mapPointToRealSpace(point)
+{
+	scaledPoint = new Point();
+	scaledPoint.x = (point.x * viewPort.width / canvas.width) + viewPort.x
+	scaledPoint.y = (point.y * viewPort.height / canvas.height) + viewPort.y;
+	return scaledPoint;
+}
+
+</script>
+
+</head>
+<body onload="onLoad()">
+
+<canvas id="drawing" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<img id="img1" class="image" src="-400,969.9,-250,970.9.png" style="display: none;">
+<img id="img2" class="image" src="-365,972,-280,973.41.png" style="display: none;">
+</body>
+</html>
