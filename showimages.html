@@ -16,9 +16,15 @@ canvas {
 // canvas
 var canvas;
 var context;
+var canvasDefaultCursor = "default";
 
 var images = [];
 var imageRects = [];
+
+var voltageText;
+var wavelengthText;
+
+var lastDownTarget;
 
 function Rectangle()
 {
@@ -28,17 +34,28 @@ function Rectangle()
 	this.width = 0;
 	this.height = 0;
 	this.bottomRight = function() { return {x: this.x + this.width, y: this.y + this.height }; }
+	
+	this.displacedNew = function (point) {
+		rect = new Rectangle();
+		rect.width = this.width;
+		rect.height = this.height;
+		rect.x = this.x - point.x;
+		rect.y = this.y - point.y;
+		return rect;
+	};
 }
 
 function Point(x,y)
 {
 	this.x = x == undefined ? 0 : x;
 	this.y = y == undefined ? 0 : y;
+	this.plus = function(p) { return new Point(this.x + p.x, this.y + p.y); }
+	this.minus = function(p) { return new Point(this.x - p.x, this.y - p.y); }
 }
 
 // viewport position
 viewPort = new Rectangle();
-viewPort.x = -400;
+viewPort.x = -450;
 viewPort.y = 969.7;
 viewPort.width = (-200 - viewPort.x);
 viewPort.height = (974 - viewPort.y);
@@ -49,8 +66,45 @@ function onLoad()
 	canvas = document.getElementById("drawing");
     context = canvas.getContext("2d");
 	
+	// canvas properties and events
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+	canvas.addEventListener('mousemove', canvasMouseMove);
+	canvas.style.cursor = canvasDefaultCursor;
+	
+	// scroll
+	canvas.addEventListener("mousewheel", canvasMouseScroll, false);
+	canvas.addEventListener("DOMMouseScroll", canvasMouseScroll, false);  // for firefox
+	
+	document.addEventListener('mousedown', function(event) {
+        lastDownTarget = event.target;
+    }, false);
+
+    document.addEventListener('keydown', function(event) {
+        if(lastDownTarget == canvas) {
+            canvasKeyDown(event);
+        }
+    }, false);
+	
+	voltageText = document.getElementById("voltage");
+	wavelengthText = document.getElementById("wavelength");
+	
+	
+	// add images
+	var imageFileNames = ["-280.00,973.42,-100.00,973.52.png",
+					      "-350.00,974.70,-250.00,975.10.png",
+					      "image_-250.00,973.83,0.00,974.27.png",
+						  "image_-350.00,973.78,-250.00,974.18.png",
+						  "image_-260.00,973.70,-100.00,973.84.png",
+						  "image_-220.00,973.59,-100.00,973.71.png",
+						  "image_-290.00,973.53,-180.00,973.94.png"];
+	var imgs = document.getElementById("imagesList");
+	for (i=0; i< imageFileNames.length; i++)
+	{
+		imgs.innerHTML = imgs.innerHTML + "<img class=\"image\" src=\"" + imageFileNames[i] + "\" style=\"display: none;\">";
+	}
+	
+	
 	
 	// get images
 	var imgs = document.getElementsByClassName("image");
@@ -60,7 +114,7 @@ function onLoad()
 	{
 		images.push(imgs[i]);
 		
-		var src = imgs[i].getAttribute("src");
+		var src = imgs[i].getAttribute("src").replace("image_","").replace(".png","");
 		var srcBits = src.split(",");
 		
 		var imgRect = new Rectangle();
@@ -69,10 +123,6 @@ function onLoad()
 		imgRect.width = parseFloat(srcBits[2]) - imgRect.x;//((-250) - (-400));
 		imgRect.height = parseFloat(srcBits[3]) - imgRect.y;//(970.9 - 969.9);
 		
-		//imgRect.x = -400;
-		//imgRect.y = 969.9;
-		//imgRect.width = ((-250) - (-400));
-		//imgRect.height = (970.9 - 969.9);
 		imageRects.push(imgRect);
 	}
     
@@ -81,6 +131,9 @@ function onLoad()
 
 function draw()
 {
+	// line style
+	var lineStyle = "#AAAAAA";
+	
 	// map images
 	for (i=0; i< images.length; i++)
 	{
@@ -88,31 +141,68 @@ function draw()
 		context.drawImage(images[i], dRect.x, dRect.y, dRect.width, dRect.height);
 	}
 	
-	// draw markers
+	// draw x markers
 	var xmin = viewPort.x;
-	var xmax = viewPort.x + viewPort.Width;
+	var xmax = viewPort.x + viewPort.width;
 	var numMarkers = 10;
-	var markerSpacing = canvas.width / (numMarkers - 1);
-	if (markerSpacing > 5) markerSpacing = 10;
-	if (markerSpacing > 15) markerSpacing = 20;
-	if (markerSpacing > 25) markerSpacing = 30;
-	if (markerSpacing > 45) markerSpacing = 30;
+	var tmarkerSpacing = viewPort.width / (numMarkers - 1); // initial spacing (in real space)
+	if (tmarkerSpacing > 5) markerSpacing = 10;
+	//if (tmarkerSpacing > 15) markerSpacing = 20;
+	//if (tmarkerSpacing > 25) markerSpacing = 30;
+	//if (tmarkerSpacing > 45) markerSpacing = 50;
 	
-	context.font = "25px Arial";
-	var x = viewPort.x;
+	context.font = "20px Arial";
+	var x = Math.floor(viewPort.x/100)*100;
 	while(x < (viewPort.x + viewPort.width))
 	{
-		x = x + markerSpacing;
+		
+		// line
+		context.strokeStyle = lineStyle;
+		p = mapPointToViewPort(new Point(x, 0));
 		context.beginPath();
-		context.moveTo(x,0);
-		context.lineTo(x,canvas.height);
+		context.moveTo(p.x,0);
+		context.lineTo(p.x,canvas.height);
 		context.stroke();
 		
 		// add text
-		p = mapPointToRealSpace(new Point(x, 0));
-		context.fillText(p.x.toFixed(1), x, 30);
+		context.fillText(x.toFixed(1), p.x, 25);
+		
+		// increment
+		x = x + markerSpacing;
 	}
 	
+	// draw y markers
+	var ymin = viewPort.y;
+	var ymax = viewPort.y + viewPort.height;
+	var numMarkers = 10;
+	var tmarkerSpacing = viewPort.height / (numMarkers - 1); // initial spacing (in real space)
+	if (tmarkerSpacing > 0.01) markerSpacing = 0.05;
+	if (tmarkerSpacing > 0.1) markerSpacing = 0.2;
+	if (tmarkerSpacing > 1) markerSpacing = 2;
+	if (tmarkerSpacing > 5) markerSpacing = 10;
+	if (tmarkerSpacing > 15) markerSpacing = 20;
+	if (tmarkerSpacing > 25) markerSpacing = 30;
+	if (tmarkerSpacing > 45) markerSpacing = 50;
+	
+	context.font = "20px Arial";
+	var y = Math.floor(viewPort.y/10)*10;
+	while(y < (viewPort.y + viewPort.height))
+	{
+		
+		// line
+		context.strokeStyle = lineStyle;
+		p = mapPointToViewPort(new Point(0,y));
+		context.beginPath();
+		context.moveTo(0,p.y);
+		context.lineTo(canvas.width, p.y);
+		context.stroke();
+		
+		// add text
+		context.fillText(y.toFixed(1), 5, p.y);
+		
+		// increment
+		y = y + markerSpacing;
+	}
 }
 
 // takes a Rectangle object that defines a region in real space, and returns a Rectangle that defines it in canvas space
@@ -144,16 +234,164 @@ function mapPointToRealSpace(point)
 	return scaledPoint;
 }
 
+
+
+var initialMousePos = null;
+var initialViewPort = null;
+var lastRealMousePoint = null;
+
+
+function canvasKeyDown(e)
+{
+	var redraw;
+	var moveFrac = 0.05;
+	switch(e.keyCode)
+	{
+		case 40:
+			// down
+			viewPort.y = viewPort.y + viewPort.height * moveFrac;
+			redraw = true;
+			break;
+		case 39:
+			// right
+			viewPort.x = viewPort.x + viewPort.width * moveFrac;
+			redraw = true;
+			break;
+			
+		case 38:
+			// up
+			viewPort.y = viewPort.y - viewPort.height * moveFrac;
+			redraw = true;
+			break;
+			
+		case 37:
+			// left
+			viewPort.x = viewPort.x - viewPort.width * moveFrac;
+			redraw = true;
+			break;
+	}
+	
+	if (redraw)
+	{
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		draw();
+	}
+}
+
+function canvasMouseScroll(e)
+{
+	console.log(e.wheelDelta);
+	
+	var lastCentreX = viewPort.x + viewPort.width / 2;
+	var lastCentreY = viewPort.y + viewPort.height / 2;
+	
+	var newWidth = e.wheelDelta > 0 ? viewPort.width * 0.95 : viewPort.width * 1.05;
+	var newHeight = e.wheelDelta > 0 ? viewPort.height * 0.95 : viewPort.height * 1.05;
+	
+	var newX = lastCentreX - newWidth / 2;
+	var newY = lastCentreY - newHeight / 2;
+	
+	viewPort.x = newX;
+	viewPort.y = newY;
+	viewPort.width = newWidth;
+	viewPort.height = newHeight;
+	
+	// redraw
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	draw();
+}
+
+/*
+ * Canvas mouse move callback
+*/
+function canvasMouseMove(evt)
+{   
+	var rect = canvas.getBoundingClientRect();
+	var mousePos = new Point(evt.clientX - rect.left, evt.clientY - rect.top);
+	
+	var realPosition = mapPointToRealSpace(mousePos);
+	lastRealMousePoint = realPosition;
+	var message = 'Mouse position: ' + realPosition.x + ',' + realPosition.y + '  ' + evt.which;
+	
+	voltage.innerText = realPosition.x.toFixed(1);
+	wavelength.innerText = realPosition.y.toFixed(3);
+	
+	// if mouse pressed, but NOT previously pressed, record the current position as the start of a drag
+	if (evt.which != 0 && initialMousePos == null)
+	{
+		// initial mouse down
+		initialMousePos = mousePos;
+		initialViewPort = viewPort;
+		
+		canvas.style.cursor = "move";
+		
+	} else if (evt.which == 0 && initialMousePos != null)
+	{
+		// mouse released
+		initialMousePos = null;
+		
+		//viewPort.x = initialViewPort.x - rdiff.x;
+		//viewPort.y = initialViewPort.y - rdiff.y;
+		
+		//viewPort = initialViewPort.displacedNew(rdiff);
+		
+		// redraw
+		//context.clearRect(0, 0, canvas.width, canvas.height);
+		//draw();
+		
+		canvas.style.cursor = canvasDefaultCursor;
+		
+	} else if (initialMousePos != null) {
+		
+		// mouse moved whilst down
+		
+		// calculate change from initial position and update viewport accordingly
+		diff = mousePos.minus(initialMousePos);
+		rdiff = new Point();
+		//rdiff = mapPointToRealSpace(mousePos).minus(mapPointToRealSpace(initialMousePos));
+		
+		rdiff.x = diff.x * viewPort.width / canvas.width;
+		rdiff.y = diff.y * viewPort.height / canvas.height;
+		
+		message = 'rdiff: ' + rdiff.x + ',' + rdiff.y;
+		
+		viewPort = initialViewPort.displacedNew(rdiff);
+		
+		// redraw
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		draw();
+		
+		console.log(message);
+	}
+	
+	//console.log(message);
+	
+	// redraw
+	//context.clearRect(0, 0, canvas.width, canvas.height);
+	//draw();
+}
+
+
 </script>
 
 </head>
 <body onload="onLoad()">
 
-<canvas id="drawing" style="border:1px solid #d3d3d3;">
+<div style="width: 200px; height: 50px; display: block;">
+<p>Voltage: <span id="voltage">---</span></p>
+<p>Wavelength: <span id="wavelength">---</span></p>
+</div>
+
+<canvas id="drawing" style="border:1px solid #d3d3d3; z-index: 1; background: #FFFFFF;" >
 Your browser does not support the HTML5 canvas tag.
 </canvas>
 
+
+<div id="imagesList">
 <img id="img1" class="image" src="-400,969.9,-250,970.9.png" style="display: none;">
 <img id="img2" class="image" src="-365,972,-280,973.41.png" style="display: none;">
+<img id="img3" class="image" src="-450,971.04,-380,971.48.png" style="display: none;">
+<img id="img4" class="image" src="-290.00,972.80,-180.00,973.12.png" style="display: none;">
+</div>
 </body>
 </html>
