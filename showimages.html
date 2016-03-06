@@ -20,7 +20,11 @@ var canvasDefaultCursor = "default";
 
 var images = [];
 var imageRects = [];
-
+var imagesLoaded = 0;
+var numImages = 0;
+var checkBoxDiv;
+var checkBoxes = [];
+var checkBoxLabels = [];
 var voltageText;
 var wavelengthText;
 
@@ -42,6 +46,10 @@ function Rectangle()
 		rect.x = this.x - point.x;
 		rect.y = this.y - point.y;
 		return rect;
+	};
+	
+	this.pointInside = function (point) {
+		return point.x >= this.x && point.x <= this.x + this.width && point.y >= this.y && point.y <= this.y + this.height;
 	};
 }
 
@@ -65,6 +73,7 @@ function onLoad()
 {
 	canvas = document.getElementById("drawing");
     context = canvas.getContext("2d");
+	checkBoxDiv = document.getElementById("checkboxes");
 	
 	// canvas properties and events
 	canvas.width = window.innerWidth;
@@ -91,7 +100,12 @@ function onLoad()
 	
 	
 	// add images
-	var imageFileNames = ["-280.00,973.42,-100.00,973.52.png",
+	var imageFileNames = ["image_-500.00,964.06,-100.00,986.19.png",
+						  "-400,969.9,-250,970.9.png",
+						  "-365,972,-280,973.41.png",
+						  "-450,971.04,-380,971.48.png",
+						  "-290.00,972.80,-180.00,973.12.png",
+						  "-280.00,973.42,-100.00,973.52.png",
 					      "-350.00,974.70,-250.00,975.10.png",
 					      "image_-250.00,973.83,0.00,974.27.png",
 						  "image_-350.00,973.78,-250.00,974.18.png",
@@ -99,32 +113,67 @@ function onLoad()
 						  "image_-220.00,973.59,-100.00,973.71.png",
 						  "image_-290.00,973.53,-180.00,973.94.png"];
 	var imgs = document.getElementById("imagesList");
-	for (i=0; i< imageFileNames.length; i++)
-	{
-		imgs.innerHTML = imgs.innerHTML + "<img class=\"image\" src=\"" + imageFileNames[i] + "\" style=\"display: none;\">";
-	}
 	
-	
-	
-	// get images
-	var imgs = document.getElementsByClassName("image");
-	
-	// process each one
-	for (i=0; i< imgs.length; i++)
-	{
-		images.push(imgs[i]);
+	numImages = imageFileNames.length;
+	for (i=0; i < imageFileNames.length; i++)
+	{		
+		// starts unloaded
+		imagesLoaded[i] = false;
 		
-		var src = imgs[i].getAttribute("src").replace("image_","").replace(".png","");
-		var srcBits = src.split(",");
+		// make image object
+		var img = new Image();
+		img.onload = onImagesAllLoaded(i);
+		img.style.display = "none";
+		img.src = imageFileNames[i];
+		img.className = "image";
+		img.id = "image" + i;
+		images.push(img);
+		imgs.appendChild(img);
+		
+		// make image bounding box
+		var coords = imageFileNames[i].replace("image_","").replace(".png","");
+		var coordsBits = coords.split(",");
 		
 		var imgRect = new Rectangle();
-		imgRect.x = parseFloat(srcBits[0]);//-400;
-		imgRect.y = parseFloat(srcBits[1]);//969.9;
-		imgRect.width = parseFloat(srcBits[2]) - imgRect.x;//((-250) - (-400));
-		imgRect.height = parseFloat(srcBits[3]) - imgRect.y;//(970.9 - 969.9);
-		
+		imgRect.x = parseFloat(coordsBits[0]);//-400;
+		imgRect.y = parseFloat(coordsBits[1]);//969.9;
+		imgRect.width = parseFloat(coordsBits[2]) - imgRect.x;//((-250) - (-400));
+		imgRect.height = parseFloat(coordsBits[3]) - imgRect.y;//(970.9 - 969.9);
 		imageRects.push(imgRect);
+		
+		// add checkbox
+		var chk = document.createElement("input");
+		chk.setAttribute("type", "checkbox");
+		chk.className = "imageCheckbox";
+		chk.id = "imageCheckBox" + i;
+		chk.onclick = checkBox_OnChange;
+		chk.checked = true;
+		checkBoxes.push(chk);
+		
+		var label = document.createElement("label");
+		label.id = "imageCheckBoxLabel" + i;
+		label.innerHTML = "Image " + i;
+		label.appendChild(chk);
+		label.style.paddingLeft = "20px";
+		checkBoxLabels.push(label);
+		checkBoxDiv.appendChild(label);
 	}
+	
+};
+	
+	
+/*
+ * called whenever an image finishes loading
+*/
+function onImagesAllLoaded(i)
+{
+	console.log("Image " + i + " loaded.");
+	imagesLoaded += 1;
+	
+	// all loaded?
+	if (imagesLoaded < numImages) return;
+	
+	console.log("All images loaded");
     
 	draw();
 };
@@ -133,12 +182,21 @@ function draw()
 {
 	// line style
 	var lineStyle = "#AAAAAA";
+	var borderStyle = "#000000";
+	var borderWidth = 1;
 	
 	// map images
 	for (i=0; i< images.length; i++)
 	{
+		// skip if checkbox is not checked
+		if (!checkBoxes[i].checked) continue;
+		
 		dRect = mapRectangleToViewPort(imageRects[i]);
 		context.drawImage(images[i], dRect.x, dRect.y, dRect.width, dRect.height);
+		
+		//context.strokeStyle = borderStyle;
+		//context.rect(dRect.x-borderWidth, dRect.y-borderWidth, dRect.width+2*borderWidth, dRect.height+2*borderWidth);
+		//context.stroke();
 	}
 	
 	// draw x markers
@@ -241,6 +299,12 @@ var initialViewPort = null;
 var lastRealMousePoint = null;
 
 
+function checkBox_OnChange(e)
+{
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	draw();
+}
+
 function canvasKeyDown(e)
 {
 	var redraw;
@@ -280,6 +344,7 @@ function canvasKeyDown(e)
 
 function canvasMouseScroll(e)
 {
+	e.stopPropagation();
 	console.log(e.wheelDelta);
 	
 	var lastCentreX = viewPort.x + viewPort.width / 2;
@@ -315,6 +380,18 @@ function canvasMouseMove(evt)
 	
 	voltage.innerText = realPosition.x.toFixed(1);
 	wavelength.innerText = realPosition.y.toFixed(3);
+	
+	// is the mouse inside one of the images?
+	for (i=0; i<imageRects.length; i++)
+	{
+		// if the mouse is over this image, and it is enabled, set the label red
+		if (checkBoxes[i].checked && imageRects[i].pointInside(realPosition))
+		{	
+			checkBoxLabels[i].style.backgroundColor = "#FF0000"
+		} else {
+			checkBoxLabels[i].style.backgroundColor = "#FFFFFF";
+		}
+	}
 	
 	// if mouse pressed, but NOT previously pressed, record the current position as the start of a drag
 	if (evt.which != 0 && initialMousePos == null)
@@ -361,7 +438,7 @@ function canvasMouseMove(evt)
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		draw();
 		
-		console.log(message);
+		//console.log(message);
 	}
 	
 	//console.log(message);
@@ -382,16 +459,14 @@ function canvasMouseMove(evt)
 <p>Wavelength: <span id="wavelength">---</span></p>
 </div>
 
-<canvas id="drawing" style="border:1px solid #d3d3d3; z-index: 1; background: #FFFFFF;" >
+<div id="checkboxes"></div>
+
+<canvas id="drawing" style="border:1px solid #d3d3d3; z-index: 1; background: #FFFFFF;" onmouseover="document.body.style.overflow='hidden';" onmouseout="document.body.style.overflow='auto';">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
 
 
 <div id="imagesList">
-<img id="img1" class="image" src="-400,969.9,-250,970.9.png" style="display: none;">
-<img id="img2" class="image" src="-365,972,-280,973.41.png" style="display: none;">
-<img id="img3" class="image" src="-450,971.04,-380,971.48.png" style="display: none;">
-<img id="img4" class="image" src="-290.00,972.80,-180.00,973.12.png" style="display: none;">
 </div>
 </body>
 </html>
