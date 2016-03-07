@@ -10,7 +10,8 @@ This can be represented as an image.
 Now say you have N of these which are taken at different x and y regions and you want to assemble them all to get a view of the full 2D space.
 
 The script has an array of filenames, which are in the format
-`<xmin>,<ymin>,<xmax>,<ymax>.png`
+`(image_)<xmin>,<ymin>,<xmax>,<ymax>.png`
+where the preceeding `image_` part is optional.
 
 each of these is loaded and drawn on the canvas so that it covers the area specified by the coordinates.
 
