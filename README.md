@@ -2,6 +2,8 @@
 
 This is a JavaScript app (right now just a single page) that will take a set of images and draw them on a canvas according to the coordinates given for the top left, and bottom right corners of each image.
 
+Useful if you have a load of partial images and want to see them all together in their proper positions relative to eachother.
+
 # Use case
 
 Suppose you have a set of image tiles that represent data taken in a parameter space.  For example, we have collected data in a 2D region of x and y, and at each coordinate we have a value z.
@@ -34,3 +36,12 @@ Up/down/left/right keys move the view port accordingly.
 The images in the root folder are parts of a data set that look like
 
 ![alt tag](https://raw.githubusercontent.com/ollie1400/DataTileAssembler/master/image_-260.00,973.70,-100.00,973.84.png)
+
+which has top left coordinates (-260,973.7) and bottom right coordinates (-100,973.84), and
+
+![alt tag](https://raw.githubusercontent.com/ollie1400/DataTileAssembler/master/-400,969.9,-250,970.9.png)
+
+which has top left coordinates (-400,969.9) and bottom right coordinates (-250,970.9).
+These would be assembled on the canvas to look like:
+
+![alt tag](https://raw.githubusercontent.com/ollie1400/DataTileAssembler/master/assembledexample.png)
