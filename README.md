@@ -28,3 +28,9 @@ Click and drag to move the view port through the space.
 Scroll up/down to zoom out/in.
 
 Up/down/left/right keys move the view port accordingly.
+
+# Example
+
+The images in the root folder are parts of a data set that look like
+
+![alt tag](https://raw.githubusercontent.com/ollie1400/DataTileAssembler/master/image_-260.00,973.70,-100.00,973.84.png)
