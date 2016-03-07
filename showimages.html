@@ -205,7 +205,7 @@ function draw()
 	var numMarkers = 10;
 	var tmarkerSpacing = viewPort.width / (numMarkers - 1); // initial spacing (in real space)
 	if (tmarkerSpacing > 5) markerSpacing = 10;
-	//if (tmarkerSpacing > 15) markerSpacing = 20;
+	if (tmarkerSpacing > 15) markerSpacing = 20;
 	//if (tmarkerSpacing > 25) markerSpacing = 30;
 	//if (tmarkerSpacing > 45) markerSpacing = 50;
 	
@@ -305,6 +305,9 @@ function checkBox_OnChange(e)
 	draw();
 }
 
+/*
+ * key down on canvas
+*/
 function canvasKeyDown(e)
 {
 	var redraw;
@@ -407,15 +410,6 @@ function canvasMouseMove(evt)
 		// mouse released
 		initialMousePos = null;
 		
-		//viewPort.x = initialViewPort.x - rdiff.x;
-		//viewPort.y = initialViewPort.y - rdiff.y;
-		
-		//viewPort = initialViewPort.displacedNew(rdiff);
-		
-		// redraw
-		//context.clearRect(0, 0, canvas.width, canvas.height);
-		//draw();
-		
 		canvas.style.cursor = canvasDefaultCursor;
 		
 	} else if (initialMousePos != null) {
@@ -432,6 +426,7 @@ function canvasMouseMove(evt)
 		
 		message = 'rdiff: ' + rdiff.x + ',' + rdiff.y;
 		
+		// move the view port
 		viewPort = initialViewPort.displacedNew(rdiff);
 		
 		// redraw
@@ -440,12 +435,6 @@ function canvasMouseMove(evt)
 		
 		//console.log(message);
 	}
-	
-	//console.log(message);
-	
-	// redraw
-	//context.clearRect(0, 0, canvas.width, canvas.height);
-	//draw();
 }
 
 
