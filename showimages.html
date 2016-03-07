@@ -182,11 +182,13 @@ function draw()
 {
 	// line style
 	var lineStyle = "#AAAAAA";
+	var markerTextStyle = "#000000";
+	var borderBackgroundStyle = "#FFFFFF";
 	var borderStyle = "#000000";
 	var borderWidth = 1;
 	
 	// map images
-	for (i=0; i< images.length; i++)
+	for (var i=0; i< images.length; i++)
 	{
 		// skip if checkbox is not checked
 		if (!checkBoxes[i].checked) continue;
@@ -204,13 +206,21 @@ function draw()
 	var xmax = viewPort.x + viewPort.width;
 	var numMarkers = 10;
 	var tmarkerSpacing = viewPort.width / (numMarkers - 1); // initial spacing (in real space)
+	var xdecimalPlaces = 0;
+	if (tmarkerSpacing > 0.01) { markerSpacing = 0.05; xdecimalPlaces = 2; }
+	if (tmarkerSpacing > 0.1) { markerSpacing = 0.2; xdecimalPlaces = 1; }
+	if (tmarkerSpacing > 0.2) { markerSpacing = 0.5; xdecimalPlaces = 1; }
+	if (tmarkerSpacing > 0.5) { markerSpacing = 1; xdecimalPlaces = 1; }
+	if (tmarkerSpacing > 1) { markerSpacing = 2; xdecimalPlaces = 0; }
 	if (tmarkerSpacing > 5) markerSpacing = 10;
 	if (tmarkerSpacing > 15) markerSpacing = 20;
-	//if (tmarkerSpacing > 25) markerSpacing = 30;
-	//if (tmarkerSpacing > 45) markerSpacing = 50;
+	if (tmarkerSpacing > 25) markerSpacing = 30;
+	if (tmarkerSpacing > 45) markerSpacing = 50;
 	
 	context.font = "20px Arial";
-	var x = Math.floor(viewPort.x/100)*100;
+	var x = Math.floor(viewPort.x/100)*100;	
+	var xmarkerCanvasPositions = [];
+	var xmarkerRealPositions = [];
 	while(x < (viewPort.x + viewPort.width))
 	{
 		
@@ -222,21 +232,25 @@ function draw()
 		context.lineTo(p.x,canvas.height);
 		context.stroke();
 		
-		// add text
-		context.fillText(x.toFixed(1), p.x, 25);
+		xmarkerCanvasPositions.push(p.x);
+		xmarkerRealPositions.push(x);
 		
 		// increment
 		x = x + markerSpacing;
 	}
+	
+	
 	
 	// draw y markers
 	var ymin = viewPort.y;
 	var ymax = viewPort.y + viewPort.height;
 	var numMarkers = 10;
 	var tmarkerSpacing = viewPort.height / (numMarkers - 1); // initial spacing (in real space)
-	if (tmarkerSpacing > 0.01) markerSpacing = 0.05;
-	if (tmarkerSpacing > 0.1) markerSpacing = 0.2;
-	if (tmarkerSpacing > 1) markerSpacing = 2;
+	var ydecimalPlaces = 0;
+	if (tmarkerSpacing > 0.01) { markerSpacing = 0.05; ydecimalPlaces = 2; }
+	if (tmarkerSpacing > 0.1) { markerSpacing = 0.2; ydecimalPlaces = 1; }
+	if (tmarkerSpacing > 1) { markerSpacing = 2; ydecimalPlaces = 0; }
+	if (tmarkerSpacing > 2) { markerSpacing = 5; ydecimalPlaces = 0; }
 	if (tmarkerSpacing > 5) markerSpacing = 10;
 	if (tmarkerSpacing > 15) markerSpacing = 20;
 	if (tmarkerSpacing > 25) markerSpacing = 30;
@@ -244,6 +258,9 @@ function draw()
 	
 	context.font = "20px Arial";
 	var y = Math.floor(viewPort.y/10)*10;
+	context.fillStyle = markerTextStyle;
+	var ymarkerCanvasPositions = [];
+	var ymarkerRealPositions = [];
 	while(y < (viewPort.y + viewPort.height))
 	{
 		
@@ -256,10 +273,52 @@ function draw()
 		context.stroke();
 		
 		// add text
-		context.fillText(y.toFixed(1), 5, p.y);
+		//context.fillText(y.toFixed(decimalPlaces), 5, p.y);
+		ymarkerCanvasPositions.push(p.y);
+		ymarkerRealPositions.push(y);
 		
 		// increment
 		y = y + markerSpacing;
+	}
+	
+	
+	// x labels
+	// add white border
+	context.globalAlpha = 0.5;
+	context.fillStyle = borderBackgroundStyle;
+	context.fillRect(0, 0, canvas.width, 25);
+	context.fill();
+	
+	// add text
+	context.fillStyle = markerTextStyle;
+	context.globalAlpha = 1;
+	for (var i=0; i < xmarkerCanvasPositions.length; i++)
+	{
+		var pos = xmarkerCanvasPositions[i];
+		var val = xmarkerRealPositions[i];
+		
+		// add text
+		context.fillText(val.toFixed(xdecimalPlaces), pos - 20, 20);
+	}
+	
+	
+	// y labels
+	// add white border
+	context.globalAlpha = 0.5;
+	context.fillStyle = borderBackgroundStyle;
+	context.fillRect(0, 0, 70, canvas.height);
+	context.fill();
+	
+	// add text
+	context.globalAlpha = 1;
+	context.fillStyle = markerTextStyle;
+	for (var i=0; i < ymarkerCanvasPositions.length; i++)
+	{
+		var pos = ymarkerCanvasPositions[i];
+		var val = ymarkerRealPositions[i];
+		
+		// add text
+		context.fillText(val.toFixed(ydecimalPlaces), 5, pos + 6);
 	}
 }
 
