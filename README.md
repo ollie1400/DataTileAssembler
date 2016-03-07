@@ -17,3 +17,13 @@ each of these is loaded and drawn on the canvas so that it covers the area speci
 Limits are currently set up to display `-400` to `0` along x, and `970` to `976` along y.  It will work outside of these ranges, but was optimised for these sorts of values so might not look very good elsewhere.
 
 To add a new imgage, just add the filename to the list.
+
+# UI
+
+For each image, a checkbox is generated.  The corresponding image is only drawn if its checkbox is checked.  The checkbox lights up when the image is moused over in the canvas.
+
+Click and drag to move the view port through the space.
+
+Scroll up/down to zoom out/in.
+
+Up/down/left/right keys move the view port accordingly.
