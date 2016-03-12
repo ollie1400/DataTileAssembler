@@ -1,0 +1,65 @@
+<html>
+<head>
+<style>
+canvas {
+  image-rendering: optimizeSpeed;             /* Older versions of FF          */
+  image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+  image-rendering: -webkit-optimize-contrast; /* Safari                        */
+  image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+  image-rendering: pixelated;                 /* Awesome future-browsers       */
+  -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}
+</style>
+<script src="DataTile.js"></script>
+<script>
+
+function onLoad()
+{
+	var viewPort = new DataTiler.Rectangle();
+	viewPort.x = -450;
+	viewPort.y = 969.7;
+	viewPort.width = (-200 - viewPort.x);
+	viewPort.height = (974 - viewPort.y);
+
+	var imageFileNames = ["image_-500.00,964.06,-100.00,986.19.png",
+						  "-400,969.9,-250,970.9.png",
+						  "-365,972,-280,973.41.png",
+						  "-450,971.04,-380,971.48.png",
+						  "-290.00,972.80,-180.00,973.12.png",
+						  "-280.00,973.42,-100.00,973.52.png",
+						  "-350.00,974.70,-250.00,975.10.png",
+						  "image_-250.00,973.83,0.00,974.27.png",
+						  "image_-350.00,973.78,-250.00,974.18.png",
+						  "image_-260.00,973.70,-100.00,973.84.png",
+						  "image_-220.00,973.59,-100.00,973.71.png",
+						  "image_-290.00,973.53,-180.00,973.94.png"];
+
+	var canvas = document.getElementById("drawing");
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+		
+	// make DataTile
+	var dt = new DataTiler(canvas, viewPort, imageFileNames);
+}
+
+</script>
+
+</head>
+<body onload="onLoad()">
+
+<div style="width: 200px; height: 50px; display: block;">
+<p>Voltage: <span id="voltage">---</span></p>
+<p>Wavelength: <span id="wavelength">---</span></p>
+</div>
+
+<div id="checkboxes"></div>
+
+<canvas id="drawing" style="border:1px solid #d3d3d3; z-index: 1; background: #FFFFFF;" onmouseover="document.body.style.overflow='hidden';" onmouseout="document.body.style.overflow='auto';">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+
+<div id="imagesList">
+</div>
+</body>
+</html>

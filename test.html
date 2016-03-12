@@ -1,0 +1,34 @@
+<html>
+<head>
+<style>
+#showresult {
+  width:98%;
+  height: 300px;    
+}
+</style>
+<script>
+var openbtn, showout;
+
+function doOpen(evt) {
+  var files = evt.target.files,
+      reader = new FileReader();
+    reader.onload = function() {
+        showout.value = this.result;
+		var ar = new Uint8Array (this.result);
+    };
+    reader.readAsArrayBuffer(files[0]);
+}
+
+function onLoad() {
+	openbtn = document.getElementById("openselect");
+	showout = document.getElementById("showresult");
+	openbtn.addEventListener("change", doOpen, false);
+};
+</script>
+</head>
+
+<body onload="onLoad()">
+<input type="file" id="openselect" />
+<textarea id="showresult"></textarea>
+</body>
+</html>
