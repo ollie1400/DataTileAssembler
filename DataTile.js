@@ -69,6 +69,7 @@ function DataTiler(tCanvas, tViewPort, uris)
 		var borderBackgroundStyle = "#FFFFFF";
 		var borderStyle = "#000000";
 		var borderWidth = 1;
+		var ImageArray = thisDataTiler.ImageArray;
 		
 		// map images
 		for (var i=0; i< ImageArray.Images.length; i++)
@@ -316,6 +317,7 @@ function DataTiler(tCanvas, tViewPort, uris)
 	*/
 	var canvasMouseMove = function(evt)
 	{   
+		var ImageArray = thisDataTiler.ImageArray;
 		var rect = canvas.getBoundingClientRect();
 		var mousePos = new DataTiler.Point(evt.clientX - rect.left, evt.clientY - rect.top);
 		
@@ -400,7 +402,7 @@ function DataTiler(tCanvas, tViewPort, uris)
         }
     }, false);
 	
-	ImageArray = new DataTiler.ImageArray(uris, this.Draw);
+	this.ImageArray = new DataTiler.ImageArray(uris, this.Draw);
 	
 	
 		

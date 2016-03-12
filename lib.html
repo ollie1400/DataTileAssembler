@@ -13,9 +13,13 @@ canvas {
 <script src="DataTile.js"></script>
 <script>
 
+var dataTiler;
+var canvas;
+var viewPort;
+
 function onLoad()
 {
-	var viewPort = new DataTiler.Rectangle();
+	viewPort = new DataTiler.Rectangle();
 	viewPort.x = -450;
 	viewPort.y = 969.7;
 	viewPort.width = (-200 - viewPort.x);
@@ -34,12 +38,12 @@ function onLoad()
 						  "image_-220.00,973.59,-100.00,973.71.png",
 						  "image_-290.00,973.53,-180.00,973.94.png"];
 
-	var canvas = document.getElementById("drawing");
+	canvas = document.getElementById("drawing");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 		
 	// make DataTile
-	var dt = new DataTiler(canvas, viewPort, imageFileNames);
+	dataTiler = new DataTiler(canvas, viewPort, imageFileNames);
 }
 
 </script>
