@@ -77,8 +77,17 @@ function DataTiler(tCanvas, tViewPort, uris)
 			// skip if not visible
 			if (!ImageArray.Images[i].Visible) continue;
 			
+			// the bounding rectangle
 			dRect = thisDataTiler.mapRectangleToViewPort(ImageArray.Images[i].BoundingRectangle);
-			context.drawImage(ImageArray.Images[i].GetImage(), dRect.x, dRect.y, dRect.width, dRect.height);
+			
+			// is it cropped?
+			var cropRect = ImageArray.Images[i].CropRetangle;
+			if (cropRect != undefined)
+			{
+				context.drawImage(ImageArray.Images[i].GetImage(), cropRect.x, cropRect.y, cropRect.width, cropRect.height, dRect.x, dRect.y, dRect.width, dRect.height);
+			} else {
+				context.drawImage(ImageArray.Images[i].GetImage(), dRect.x, dRect.y, dRect.width, dRect.height);
+			}
 			
 			//context.strokeStyle = borderStyle;
 			//context.rect(dRect.x-borderWidth, dRect.y-borderWidth, dRect.width+2*borderWidth, dRect.height+2*borderWidth);
@@ -458,6 +467,7 @@ DataTiler.Point = function (x,y)
 DataTiler.Image = function ()
 {
 	this.BoundingRectangle = new DataTiler.Rectangle();
+	this.CropRetangle = null;
 	this.Visible = true;
 	this.OnImageLoad;
 	var loaded = false;
