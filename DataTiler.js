@@ -5,7 +5,7 @@
 /*
  * main entry.  Cretae a DataTiler object with a reference to a canvas
  */
-var DataTiler = function (tCanvas, tViewPort, uris)
+var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 {
 	var viewPort = tViewPort;
 	var canvas = tCanvas;
@@ -14,12 +14,14 @@ var DataTiler = function (tCanvas, tViewPort, uris)
 	var thisDataTiler = this;
 
 	this.ImageArray = undefined;
-	var checkBoxDiv;
-	var checkBoxes = [];
-	var checkBoxLabels = [];
-	var voltageText;
-	var wavelengthText;
 	var lastDownTarget;
+	
+	this.mousescroll = null;
+	this.mousedown = null;
+	this.keydown = null;
+	// event called when the mouse is moved over the canvas
+	// should be function (evt, realPos) where evt is the low level event, and realPos is the calculated real position of the mouse
+	this.mousemove = null;
 	
 	// dragging things
 	var initialMousePos = null;
@@ -323,6 +325,9 @@ var DataTiler = function (tCanvas, tViewPort, uris)
 		
 		// redraw
 		thisDataTiler.Redraw();
+		
+		// fire event
+		if (thisDataTiler.mousescroll != null) thisDataTiler.mousescroll(e);
 	}
 
 	/*
@@ -338,8 +343,6 @@ var DataTiler = function (tCanvas, tViewPort, uris)
 		lastRealMousePoint = realPosition;
 		var message = 'Mouse position: ' + realPosition.x + ',' + realPosition.y + '  ' + evt.which;
 		
-		voltage.innerText = realPosition.x.toFixed(1);
-		wavelength.innerText = realPosition.y.toFixed(3);
 		
 		// is the mouse inside one of the images?
 		for (i=0; i<ImageArray.Images.length; i++)
@@ -391,6 +394,9 @@ var DataTiler = function (tCanvas, tViewPort, uris)
 			
 			//console.log(message);
 		}
+		
+		// fire event
+		if (thisDataTiler.mousemove != null) thisDataTiler.mousemove(evt, realPosition);
 	}
 	
 	// CONSTRUCTOR
@@ -415,7 +421,7 @@ var DataTiler = function (tCanvas, tViewPort, uris)
         }
     }, false);
 	
-	this.ImageArray = new DataTiler.ImageArray(uris, this.Draw);
+	this.ImageArray = new DataTiler.ImageArray(uris, baseDir, this.Draw);
 	
 	
 		
@@ -474,6 +480,7 @@ DataTiler.Image = function ()
 	this.CropRetangle = null;
 	this.Visible = true;
 	this.OnImageLoad;
+	this.Separator = "___";
 	var loaded = false;
 	var src;
 	var image = undefined;
@@ -495,7 +502,11 @@ DataTiler.Image = function ()
 		image = img;
 		
 		// make image bounding box
-		var coords = src.replace("image_","").replace(".png","");
+		var coordsStart = src.indexOf(this.Separator);
+		if (coordsStart == -1) throw new Error("Can't find coordinate separator \""+this.Separator+"\" in file name \"" + src + "\"");
+		coordsStart += this.Separator.length;
+		
+		var coords = src.substring(coordsStart).replace(".png","");
 		var coordsBits = coords.split(",");
 		
 		var imgRect = new DataTiler.Rectangle();
@@ -521,7 +532,7 @@ DataTiler.Image = function ()
 }
 
 
-DataTiler.ImageArray = function (uris, onAllLoaded)
+DataTiler.ImageArray = function (uris, baseDir, onAllLoaded)
 {
 	this.Images = [];
 	var numImages = 0;
@@ -553,6 +564,8 @@ DataTiler.ImageArray = function (uris, onAllLoaded)
 		img.OnImageLoad = onImageLoaded;
 		this.Images.push(img);		
 		
+		var fname = uris[i];
+		if (baseDir != undefined) fname = baseDir + fname;
 		img.SetSrc(uris[i]);
 		
 		
