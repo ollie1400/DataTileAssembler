@@ -10,14 +10,14 @@ canvas {
   -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
 }
 </style>
-<script src="DataTile.js"></script>
+<script src="DataTiler.js"></script>
 <script>
 
 var dataTiler;
 var canvas;
 var viewPort;
 
-function onLoad()
+function onLoad(PNG, PNGReader)
 {
 	viewPort = new DataTiler.Rectangle();
 	viewPort.x = -450;
@@ -38,19 +38,46 @@ function onLoad()
 						  "image_-220.00,973.59,-100.00,973.71.png",
 						  "image_-290.00,973.53,-180.00,973.94.png"];
 
+	var imageFileNames = ["-450,971.04,-380,971.48.png"];
 	canvas = document.getElementById("drawing");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+	
+	// for each PNG get information
+	for (var i=0; i<imageFileNames.length; i++)
+	{
+		//reader.readAsArrayBuffer(imageFileNames[i]);
+		var xhr = new XMLHttpRequest();
+		xhr.responseType = 'arraybuffer';
+
+		xhr.onload = function(e){
+		var fn = imageFileNames[i];
+			if (this.status == 200){
+				var reader = new PNGReader(this.response);
+				reader.parse({data: false}, function(err, png){
+					if (err) throw err;
+					console.log(png);
+				});
+			}
+		};
+
+		xhr.open('GET', imageFileNames[i], true);
+		xhr.send();
+	}
 		
 	// make DataTile
 	dataTiler = new DataTiler(canvas, viewPort, imageFileNames);
 }
-
+		
+var require = {
+	deps: ["PNG", "PNGReader", "PNG.js", "PNGReader.js"],
+	callback: onLoad
+};
 </script>
 <script src="lib/require.js"></script>
 
 </head>
-<body onload="onLoad()">
+<body>
 
 <div style="width: 200px; height: 50px; display: block;">
 <p>Voltage: <span id="voltage">---</span></p>

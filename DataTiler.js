@@ -1,7 +1,11 @@
+//define(function () {
+
+//"use strict";
+
 /*
  * main entry.  Cretae a DataTiler object with a reference to a canvas
  */
-function DataTiler(tCanvas, tViewPort, uris)
+var DataTiler = function (tCanvas, tViewPort, uris)
 {
 	var viewPort = tViewPort;
 	var canvas = tCanvas;
@@ -569,3 +573,7 @@ DataTiler.ImageArray = function (uris, onAllLoaded)
 	}
 	this.GetNumImages = function () { return numImages; }
 }
+
+//return DataTiler;
+
+//});
