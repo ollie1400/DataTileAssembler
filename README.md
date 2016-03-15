@@ -41,6 +41,8 @@ var imageFileNames = ["image_-500.00,964.06,-100.00,986.19.png",
 						  "image_-290.00,973.53,-180.00,973.94.png"];
 ```
 
+
+
 and a canvas object
 ```
 var canvas = document.getElementById("drawing");
@@ -77,3 +79,13 @@ which has top left coordinates (-400,969.9) and bottom right coordinates (-250,9
 These would be assembled on the canvas to look like:
 
 ![alt tag](https://raw.githubusercontent.com/ollie1400/DataTileAssembler/master/assembledexample.png)
+
+# References
+
+Uses RequireJS (http://requirejs.org/)
+
+Also uses arian's png library, pngjs (https://github.com/arian/pngjs) with a few modifications; encapsulated to work with RequireJS (although zlib isn't included so can't decompress image data); added reading of tEXt chunks in the png image which are made publicly available.
+
+# To-do
+
+The reason for including pngjs is so the coordinate information can be stored in a tEXt chuck in the png rather than in an ugly filename.  Coming soon..
