@@ -312,8 +312,11 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		var lastCentreX = viewPort.x + viewPort.width / 2;
 		var lastCentreY = viewPort.y + viewPort.height / 2;
 		
-		var newWidth = e.wheelDelta > 0 ? viewPort.width * 0.95 : viewPort.width * 1.05;
-		var newHeight = e.wheelDelta > 0 ? viewPort.height * 0.95 : viewPort.height * 1.05;
+		var scrollChange = 0.13;
+		var scrollDec = 1 - scrollChange;
+		var scrollInc = 1 + scrollChange;
+		var newWidth = e.wheelDelta > 0 ? viewPort.width * scrollDec  : viewPort.width * scrollInc;
+		var newHeight = e.wheelDelta > 0 ? viewPort.height * scrollDec  : viewPort.height * scrollInc;
 		
 		var newX = lastCentreX - newWidth / 2;
 		var newY = lastCentreY - newHeight / 2;
