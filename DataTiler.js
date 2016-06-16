@@ -73,32 +73,55 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		var lineStyle = "#AAAAAA";
 		var markerTextStyle = "#000000";
 		var borderBackgroundStyle = "#FFFFFF";
-		var borderStyle = "#000000";
-		var borderWidth = 1;
+		//var borderStyle = "#000000";
+		//var borderWidth = 1;
 		var ImageArray = thisDataTiler.ImageArray;
 		
 		// map images
+		saveStroke();
 		for (var i=0; i< ImageArray.Images.length; i++)
 		{
-			// skip if not visible
-			if (!ImageArray.Images[i].Visible) continue;
+			var thisImage = ImageArray.Images[i];
 			
-			// the bounding rectangle
-			dRect = thisDataTiler.mapRectangleToViewPort(ImageArray.Images[i].BoundingRectangle);
+			// skip if not visible
+			if (!thisImage.Visible) continue;
 			
 			// is it cropped?
 			var cropRect = ImageArray.Images[i].CropRetangle;
+			var dRect = thisDataTiler.mapRectangleToViewPort(ImageArray.Images[i].BoundingRectangle);
 			if (cropRect != undefined)
 			{
 				context.drawImage(ImageArray.Images[i].GetImage(), cropRect.x, cropRect.y, cropRect.width, cropRect.height, dRect.x, dRect.y, dRect.width, dRect.height);
 			} else {
 				context.drawImage(ImageArray.Images[i].GetImage(), dRect.x, dRect.y, dRect.width, dRect.height);
 			}
-			
-			//context.strokeStyle = borderStyle;
-			//context.rect(dRect.x-borderWidth, dRect.y-borderWidth, dRect.width+2*borderWidth, dRect.height+2*borderWidth);
-			//context.stroke();
 		}
+		restoreStroke();
+		
+		
+		// draw bounding boxes if visible
+		saveStroke();
+		for (var i=0; i< ImageArray.Images.length; i++)
+		{
+			var thisImage = ImageArray.Images[i];
+			
+			// skip if not visible
+			if (!thisImage.Visible) continue;
+			
+			// the bounding rectangle
+			if (thisImage.DrawBoundingRectangle)
+			{
+				var dRect = thisDataTiler.mapRectangleToViewPort(ImageArray.Images[i].BoundingRectangle);
+				var borderWidth = thisImage.BoundingRectangleThickness;
+				context.strokeStyle = thisImage.BoundingRectangleColor;
+				context.lineWidth=borderWidth;
+				borderWidth *= 0.5;
+				context.rect(dRect.x-borderWidth, dRect.y-borderWidth, dRect.width+2*borderWidth, dRect.height+2*borderWidth);
+				context.stroke();
+			}
+		}
+		restoreStroke();
+		
 		
 		// draw x markers
 		var xmin = viewPort.x;
@@ -253,6 +276,20 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		return scaledPoint;
 	}
 	
+	
+	var defLineWidth = 1;
+	var defStrokeStyle = "#000000";
+	var saveStroke = function()
+	{
+		defStrokeStyle = context.strokeStyle;
+		defLineWidth = context.lineWidth;
+	}
+	
+	var restoreStroke = function()
+	{
+		context.strokeStyle = defStrokeStyle;
+		context.lineWidth = defLineWidth;
+	}
 	
 	
 	
@@ -484,6 +521,9 @@ DataTiler.Image = function ()
 	this.Visible = true;
 	this.OnImageLoad;
 	this.Separator = "___";
+	this.DrawBoundingRectangle = false;
+	this.BoundingRectangleColor = "#000000";
+	this.BoundingRectangleThickness = 1;
 	var loaded = false;
 	var src;
 	var image = undefined;
