@@ -28,6 +28,10 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 	var initialViewPort = null;
 	var lastRealMousePoint = null;
 	
+	// draw grids?
+	this.drawXGrid = true;
+	this.drawYGrid = true;
+	
 	// METHODS
 	
 	// callback for when all images are loaded
@@ -123,7 +127,7 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		restoreStroke();
 		
 		
-		// draw x markers
+		// draw x markers#
 		var xmin = viewPort.x;
 		var xmax = viewPort.x + viewPort.width;
 		var numMarkers = 10;
@@ -146,13 +150,17 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		while(x < (viewPort.x + viewPort.width))
 		{
 			
-			// line
 			context.strokeStyle = lineStyle;
 			p = thisDataTiler.mapPointToViewPort(new DataTiler.Point(x, 0));
-			context.beginPath();
-			context.moveTo(p.x,0);
-			context.lineTo(p.x,canvas.height);
-			context.stroke();
+				
+			// line
+			if (this.drawXGrid)
+			{
+				context.beginPath();
+				context.moveTo(p.x,0);
+				context.lineTo(p.x,canvas.height);
+				context.stroke();
+			}
 			
 			xmarkerCanvasPositions.push(p.x);
 			xmarkerRealPositions.push(x);
@@ -160,7 +168,6 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 			// increment
 			x = x + markerSpacing;
 		}
-		
 		
 		
 		// draw y markers
@@ -186,13 +193,17 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		while(y < (viewPort.y + viewPort.height))
 		{
 			
-			// line
 			context.strokeStyle = lineStyle;
 			p = thisDataTiler.mapPointToViewPort(new DataTiler.Point(0,y));
-			context.beginPath();
-			context.moveTo(0,p.y);
-			context.lineTo(canvas.width, p.y);
-			context.stroke();
+			
+			// line
+			if (this.drawYGrid)
+			{
+				context.beginPath();
+				context.moveTo(0,p.y);
+				context.lineTo(canvas.width, p.y);
+				context.stroke();
+			}
 			
 			// add text
 			//context.fillText(y.toFixed(decimalPlaces), 5, p.y);
@@ -344,7 +355,7 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 	var canvasMouseScroll = function(e)
 	{
 		e.stopPropagation();
-		console.log(e.wheelDelta);
+		//console.log(e.wheelDelta);
 		
 		var lastCentreX = viewPort.x + viewPort.width / 2;
 		var lastCentreY = viewPort.y + viewPort.height / 2;
