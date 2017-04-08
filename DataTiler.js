@@ -447,6 +447,12 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 	canvas.addEventListener('mousemove', canvasMouseMove);
 	canvas.style.cursor = canvasDefaultCursor;
 	
+	// set scaling to nearest neighbour
+	// (see http://phoboslab.org/log/2012/09/drawing-pixels-is-hard)
+	context.mozImageSmoothingEnabled  = false;
+	context.msImageSmoothingEnabled = false;
+	context.imageSmoothingEnabled = false;
+	
 	// scroll
 	canvas.addEventListener("mousewheel", canvasMouseScroll, false);
 	canvas.addEventListener("DOMMouseScroll", canvasMouseScroll, false);  // for firefox
