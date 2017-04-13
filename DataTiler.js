@@ -178,6 +178,7 @@ var DataTiler = function (tCanvas, tViewPort, uris, baseDir)
 		var ydecimalPlaces = 0;
 		if (tmarkerSpacing > 0.01) { markerSpacing = 0.05; ydecimalPlaces = 2; }
 		if (tmarkerSpacing > 0.1) { markerSpacing = 0.2; ydecimalPlaces = 1; }
+		if (tmarkerSpacing > 0.5) { markerSpacing = 1; ydecimalPlaces = 0; }
 		if (tmarkerSpacing > 1) { markerSpacing = 2; ydecimalPlaces = 0; }
 		if (tmarkerSpacing > 2) { markerSpacing = 5; ydecimalPlaces = 0; }
 		if (tmarkerSpacing > 5) markerSpacing = 10;
